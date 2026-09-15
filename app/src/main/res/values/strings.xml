@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Telephony Monitor</string>
+    <string name="location_attribution_label">Features utilizing location data</string>
+</resources>
