@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "org.khpylon.telephmonitor"
+    namespace = "org.khpylon.mobnetmonitor"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "org.khpylon.telephmonitor"
+        applicationId = "org.khpylon.mobnetmonitor"
         minSdk = 33
         targetSdk = 37
         versionCode = 1

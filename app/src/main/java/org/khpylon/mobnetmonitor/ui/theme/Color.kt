@@ -1,4 +1,4 @@
-package org.khpylon.telephmonitor.ui.theme
+package org.khpylon.mobnetmonitor.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

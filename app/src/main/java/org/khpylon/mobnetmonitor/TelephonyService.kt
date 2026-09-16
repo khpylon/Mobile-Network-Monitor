@@ -1,4 +1,4 @@
-package org.khpylon.telephmonitor
+package org.khpylon.mobnetmonitor
 
 import android.R
 import android.app.Notification

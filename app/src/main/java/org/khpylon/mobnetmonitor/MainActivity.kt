@@ -1,4 +1,4 @@
-package org.khpylon.telephmonitor
+package org.khpylon.mobnetmonitor
 
 import android.Manifest
 import android.content.Intent
@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import org.khpylon.telephmonitor.ui.theme.MyApplicationTheme
+import org.khpylon.mobnetmonitor.ui.theme.MyApplicationTheme
 
 object Constants {
     const val LOGTAG = "934TXS"
