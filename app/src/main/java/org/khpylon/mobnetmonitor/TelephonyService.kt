@@ -86,55 +86,60 @@ class TelephonyService : Service() {
     private inner class ServiceStateCallback : TelephonyCallback(),
         TelephonyCallback.ServiceStateListener {
         override fun onServiceStateChanged(serviceState: ServiceState) {
-            val statusText = when (serviceState.state) {
-                ServiceState.STATE_IN_SERVICE -> "In Service - ${serviceState.operatorAlphaLong}"
-                ServiceState.STATE_OUT_OF_SERVICE -> "No Network Service"
-                ServiceState.STATE_EMERGENCY_ONLY -> "Emergency Calls Only"
-                ServiceState.STATE_POWER_OFF -> "Radio Off (Airplane Mode)"
-                else -> "Unknown State"
-            }
 
-            // TODO: After leaving Airplane mode, state changes to OUT_OF_SERVICE before changing to IN_SERVICE.
-            // TODO: Need a way to recognize and not immediately play the alert.  Maybe remember the
-            // TODO: time when when changes happen and if it's almost immediate ignore the event.
-            // TODO: Can we write a FSM to also recognize this?
-
-            val storage = Storage(applicationContext)
-
-            // Get time of the last service state change
-            val lastTime = storage.lastTime
-
-            // Find time ten seconds prior from right now
-            val nowTime = LocalDateTime.now(ZoneId.systemDefault())
-            val thenTime = nowTime.minusSeconds(10).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-
-            // Store current time
-            storage.lastTime = nowTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-
-            // If it hasn't been ten seconds since the last change, ignore it
-            if (thenTime < lastTime) {
+            // Ignore Airplane mode changes; they don't seem to tell anything useful
+            if (serviceState.state == ServiceState.STATE_POWER_OFF) {
                 Log.d(Constants.LOGTAG,
-                    "TelephonyService.onServiceStateChanged(): mode change to $statusText, but less than 10 seconds elapsed"
+                    "TelephonyService.onServiceStateChanged(): ignoring change to STATE_POWER_OFF"
                 )
-                return
+            } else {
+                val storage = Storage(applicationContext)
+
+                // Get time of the last service state change
+                val lastTime = storage.lastTime
+
+                // Find time ten seconds prior from right now
+                val nowTime = LocalDateTime.now(ZoneId.systemDefault())
+                val thenTime = nowTime.minusSeconds(10).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+                // If state changes from "out of service" to "in service", play notification sound
+                if (storage.serviceState != ServiceState.STATE_IN_SERVICE && serviceState.state == ServiceState.STATE_IN_SERVICE) {
+                    // If it hasn't been ten seconds since the last change, ignore it
+                    if (thenTime < lastTime) {
+                        Log.d(Constants.LOGTAG,
+                            "TelephonyService.onServiceStateChanged(): less than 10 seconds elapsed since last change, so not playing alarm"
+                        )
+                    } else {
+                        Log.d(Constants.LOGTAG,
+                            "TelephonyService.onServiceStateChanged(): playing alarm"
+                        )
+                        val intent = Intent(applicationContext, PlayAlarmService::class.java)
+                        startForegroundService(intent)
+                    }
+                }
+
+                val statusText = when (serviceState.state) {
+                    ServiceState.STATE_IN_SERVICE -> "In Service"
+                    ServiceState.STATE_OUT_OF_SERVICE -> "No Network Service"
+                    ServiceState.STATE_EMERGENCY_ONLY -> "Emergency Calls Only"
+                    ServiceState.STATE_POWER_OFF -> "Radio Off (Airplane Mode)"
+                    else -> "Unknown State"
+                }
+
+                // Send notification
+                val notificationManager =
+                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.notify(NOTIFICATION_ID, buildNotification(statusText))
+
+                // if state changes, save the new state and current time
+                if( storage.serviceState != serviceState.state ) {
+                    storage.serviceState = serviceState.state
+                    storage.lastTime = nowTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                    Log.d(Constants.LOGTAG,
+                        "TelephonyService.onServiceStateChanged(): mode change to $statusText"
+                    )
+                }
             }
-
-            // If state changes from "out of service" to "in service", play notification sound
-            if (!storage.isConnected && serviceState.state == ServiceState.STATE_IN_SERVICE) {
-                val intent = Intent(applicationContext, PlayAlarmService::class.java)
-                startForegroundService(intent)
-            }
-
-            val notificationManager =
-                getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.notify(NOTIFICATION_ID, buildNotification(statusText))
-
-            // save current state
-            storage.isConnected = serviceState.state == ServiceState.STATE_IN_SERVICE
-            Log.d(Constants.LOGTAG,
-                "TelephonyService.onServiceStateChanged(): mode change to $statusText"
-            )
-
         }
     }
 

@@ -16,10 +16,27 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import org.khpylon.mobnetmonitor.ui.theme.MyApplicationTheme
+import org.khpylon.mobnetmonitor.ui.theme.MobNetMonitorTheme
+import android.app.Activity
+import android.media.RingtoneManager
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+
 
 object Constants {
     const val LOGTAG = "934TXS"
@@ -47,7 +64,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val storage = Storage(applicationContext)
-        storage.isConnected = state == ServiceState.STATE_IN_SERVICE
+        storage.serviceState = state
 
         if (!TelephonyService.isRunning) {
             Log.d(Constants.LOGTAG, "MainActivity.onCreate(): starting Telephony service")
@@ -56,7 +73,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            MyApplicationTheme {
+            MobNetMonitorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
                         name = "Android",
@@ -70,16 +87,79 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+
+    val context = LocalContext.current.applicationContext
+    val storage = Storage(context)
+
+    var selectedRingtoneUri by remember { mutableStateOf<Uri?>(storage.ringTone) }
+
+    val ringtone = RingtoneManager.getRingtone(context, selectedRingtoneUri)
+    var selectedRingtoneTitle by remember { mutableStateOf(ringtone.getTitle(context)) }
+
+    val ringtoneLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.let { intent ->
+                // Retrieve the selected ringtone URI
+                val uri =
+                    intent.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI,Uri::class.java)
+                selectedRingtoneUri = uri
+                storage.ringTone = uri!!
+                val ringtone = RingtoneManager.getRingtone(context, uri)
+                // Extract the user-friendly title
+                selectedRingtoneTitle = ringtone?.getTitle(context) ?: "Unknown Ringtone"
+            }
+        }
+    }
+
+    Column( ) {
+        Text(
+            text = "Hello $name!",
+            modifier = modifier
+        )
+
+        Box(
+            modifier = Modifier
+                .clickable(
+                    true, "label",
+                    onClick = {
+                        val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                            putExtra(
+                                RingtoneManager.EXTRA_RINGTONE_TYPE,
+                                RingtoneManager.TYPE_RINGTONE
+                            )
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
+                            putExtra(
+                                RingtoneManager.EXTRA_RINGTONE_EXISTING_URI,
+                                selectedRingtoneUri
+                            )
+                        }
+                        ringtoneLauncher.launch(intent)
+                    }
+                )
+        ) {
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Normal)) {
+                        append("Notification ringtone (tap to change)")
+                    }
+                    append("\n  ")
+                    withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
+                        append(selectedRingtoneTitle)
+                    }
+                }, modifier = Modifier.padding(10.dp)
+            )
+        }
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    MyApplicationTheme {
+    MobNetMonitorTheme() {
         Greeting("Android")
     }
 }
+

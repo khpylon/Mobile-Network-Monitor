@@ -2,18 +2,23 @@ package org.khpylon.mobnetmonitor
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.media.RingtoneManager
+import android.net.Uri
+import android.telephony.ServiceState
+import androidx.core.net.toUri
 
 object StorageConstants {
     const val TAG = "storage"
     const val TELEPHONY_STATE = "telephonyState"
     const val LAST_TIME = "lastTime"
+    const val RINGTONE_URI = "ringToneUri"
     const val NEW_INSTALL = "newInstall"
     const val LAST_APP_VERSION: String = "last_app_version"
     const val CURRENT_APP_VERSION: String = "current_app_version"
     const val FIRST_APP_VERSION: String = "2026.09-18"
 }
 
-class Storage (private val context: Context) {
+class Storage(private val context: Context) {
     private fun commitWait(edit: SharedPreferences.Editor) {
         for (i in 0..9) {
             if (edit.commit()) {
@@ -22,14 +27,15 @@ class Storage (private val context: Context) {
         }
     }
 
-    var isConnected: Boolean
+    var serviceState: Int
         get() {
             val pref = context.getSharedPreferences(StorageConstants.TAG, Context.MODE_PRIVATE)
-            return pref.getBoolean(StorageConstants.TELEPHONY_STATE, true)
+            return pref.getInt(StorageConstants.TELEPHONY_STATE, ServiceState.STATE_IN_SERVICE)
         }
-        set(mode) {
-            val edit = context.getSharedPreferences(StorageConstants.TAG, Context.MODE_PRIVATE).edit()
-            edit.putBoolean(StorageConstants.TELEPHONY_STATE, mode)
+        set(state) {
+            val edit =
+                context.getSharedPreferences(StorageConstants.TAG, Context.MODE_PRIVATE).edit()
+            edit.putInt(StorageConstants.TELEPHONY_STATE, state)
             commitWait(edit)
         }
 
@@ -53,6 +59,28 @@ class Storage (private val context: Context) {
             commitWait(edit)
         }
 
+    var ringTone: Uri
+        get() {
+            val pref = context.getSharedPreferences(StorageConstants.TAG, Context.MODE_PRIVATE)
+            val defaultUri =
+                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION).toString()
+            val uri = pref.getString(StorageConstants.RINGTONE_URI, defaultUri)!!.toUri()
+
+            // Make sure the URI still exists
+            try {
+                context.contentResolver.openInputStream(uri)?.close()
+                return uri
+            }
+            catch (_: Exception) {
+                return defaultUri.toUri()
+            }
+        }
+        set(uri) {
+            val edit =
+                context.getSharedPreferences(StorageConstants.TAG, Context.MODE_PRIVATE).edit()
+            edit.putString(StorageConstants.RINGTONE_URI, uri.toString())
+            commitWait(edit)
+        }
 
     var newInstall: Boolean
         get() {
@@ -60,7 +88,8 @@ class Storage (private val context: Context) {
             return pref.getBoolean(StorageConstants.NEW_INSTALL, true)
         }
         set(isNewInstall) {
-            val edit = context.getSharedPreferences(StorageConstants.TAG, Context.MODE_PRIVATE).edit()
+            val edit =
+                context.getSharedPreferences(StorageConstants.TAG, Context.MODE_PRIVATE).edit()
             edit.putBoolean(StorageConstants.NEW_INSTALL, isNewInstall)
             commitWait(edit)
         }
@@ -68,7 +97,10 @@ class Storage (private val context: Context) {
     val lastAppVersion: String
         get() {
             val pref = context.getSharedPreferences(StorageConstants.TAG, Context.MODE_PRIVATE)
-            return pref.getString(StorageConstants.LAST_APP_VERSION, StorageConstants.FIRST_APP_VERSION).toString()
+            return pref.getString(
+                StorageConstants.LAST_APP_VERSION,
+                StorageConstants.FIRST_APP_VERSION
+            ).toString()
         }
 
     // Track versions of the app.  This is used to display most recent release notes
@@ -77,13 +109,15 @@ class Storage (private val context: Context) {
         val edit = pref.edit()
 
         // Get prior app version and save it
-        val lastAppVersion = pref.getString(StorageConstants.CURRENT_APP_VERSION, StorageConstants.FIRST_APP_VERSION).toString()
+        val lastAppVersion =
+            pref.getString(StorageConstants.CURRENT_APP_VERSION, StorageConstants.FIRST_APP_VERSION)
+                .toString()
         edit.putString(StorageConstants.LAST_APP_VERSION, lastAppVersion)
 
         val buildVersion = BuildConfig.VERSION_NAME
         // Make sure there's no ".debug" on end of current version string
         val currentAppVersion = if (buildVersion.endsWith(".debug"))
-            buildVersion.substring(buildVersion.length-6)
+            buildVersion.substring(buildVersion.length - 6)
         else
             buildVersion
 
