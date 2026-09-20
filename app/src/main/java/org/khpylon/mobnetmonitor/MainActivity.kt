@@ -27,6 +27,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
@@ -42,6 +45,7 @@ object Constants {
     const val LOGTAG = "934TXS"
 }
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -74,7 +78,15 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MobNetMonitorTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = { Text(applicationContext.getString(R.string.app_name)) },
+                            actions = {}
+                        )
+                    },
+                    modifier = Modifier.fillMaxSize())
+                { innerPadding ->
                     Greeting(
                         name = "Android",
                         modifier = Modifier.padding(innerPadding)
@@ -113,10 +125,25 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         }
     }
 
-    Column( ) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+
+
         Text(
-            text = "Hello $name!",
+            text = buildAnnotatedString {
+                append ("This app monitors the status of your cellular network connection, ")
+                append ("and should you lose network service for a period of time will sound ")
+                append("an alert when service is re-established.")
+            },
             modifier = modifier
+        )
+
+        Spacer(
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
         )
 
         Box(
@@ -143,13 +170,13 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
             Text(
                 text = buildAnnotatedString {
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Normal)) {
-                        append("Notification ringtone (tap to change)")
+                        append("Alert ringtone (tap to change)")
                     }
                     append("\n  ")
                     withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
                         append(selectedRingtoneTitle)
                     }
-                }, modifier = Modifier.padding(10.dp)
+                }
             )
         }
     }
