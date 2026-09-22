@@ -28,10 +28,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -76,6 +83,50 @@ class MainActivity : ComponentActivity() {
             ContextCompat.startForegroundService(applicationContext, startIntent)
         }
 
+        if (applicationContext.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+            && storage.notificationPermission == StorageConstants.PERMISSION_GRANTED
+        ) {
+            storage.notificationPermission = StorageConstants.PERMISSION_DENIED
+        } else if (applicationContext.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+            && storage.notificationPermission != StorageConstants.PERMISSION_GRANTED
+        ) {
+            storage.notificationPermission = StorageConstants.PERMISSION_GRANTED
+        }
+
+
+//        if (ContextCompat.checkSelfPermission(
+//                this, Manifest.permission.POST_NOTIFICATIONS
+//            ) != PackageManager.PERMISSION_GRANTED
+//        ) {
+////            if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+//                registerForActivityResult(ActivityResultContracts.RequestPermission()) { }.launch(
+//                    Manifest.permission.POST_NOTIFICATIONS
+//                )
+////            }
+//        }
+
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.READ_PHONE_STATE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            if (shouldShowRequestPermissionRationale(Manifest.permission.READ_PHONE_STATE)) {
+                registerForActivityResult(ActivityResultContracts.RequestPermission()) { }.launch(
+                    Manifest.permission.READ_PHONE_STATE
+                )
+            }
+        }
+
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                registerForActivityResult(ActivityResultContracts.RequestPermission()) { }.launch(
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            }
+        }
+
         setContent {
             MobNetMonitorTheme {
                 Scaffold(
@@ -95,6 +146,56 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
+
+@Composable
+fun InfoDialog(
+    onDismissRequest: () -> Unit,
+    onConfirmRequest: () -> Unit = {},
+    dialogTitle: String,
+    dialogText: AnnotatedString,
+    confirmText: String? = null,
+    dismissText: String? = null,
+) {
+    AlertDialog(
+        icon = {
+            Icon(painter = painterResource(R.drawable.info_24px), contentDescription = "")
+        },
+        title = {
+            Text(text = dialogTitle)
+        },
+        text = {
+            Text(
+                text = dialogText,
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            )
+        },
+        onDismissRequest = { onDismissRequest() },
+
+        // Only use confirm and dismiss if a button text exists
+        confirmButton = {
+            if (confirmText != null) {
+                TextButton(
+                    onClick = {
+                        onConfirmRequest()
+                    }
+                ) {
+                    Text(confirmText)
+                }
+            }
+        },
+        dismissButton = {
+            if (dismissText != null) {
+                TextButton(
+                    onClick = {
+                        onDismissRequest()
+                    }
+                ) {
+                    Text(dismissText)
+                }
+            }
+        }
+    )
 }
 
 @Composable
@@ -146,6 +247,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                 .padding(horizontal = 8.dp)
         )
 
+        WidgetPermissions(context)
         Box(
             modifier = Modifier
                 .clickable(
@@ -185,7 +287,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    MobNetMonitorTheme() {
+    MobNetMonitorTheme {
         Greeting("Android")
     }
 }

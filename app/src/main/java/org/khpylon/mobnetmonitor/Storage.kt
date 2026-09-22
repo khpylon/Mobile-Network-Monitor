@@ -16,6 +16,12 @@ object StorageConstants {
     const val LAST_APP_VERSION: String = "last_app_version"
     const val CURRENT_APP_VERSION: String = "current_app_version"
     const val FIRST_APP_VERSION: String = "2026.09-18"
+    const val NOTIFICATION_STATUS: String = "notificationStatus"
+    const val NOTIFICATION_PERMISSION: String = "notificationPermissions"
+    const val PERMISSION_NOT_REQUESTED: Int = 0
+    const val PERMISSION_GRANTED: Int = 1
+    const val PERMISSION_DENIED: Int = 2
+
 }
 
 class Storage(private val context: Context) {
@@ -126,4 +132,45 @@ class Storage(private val context: Context) {
         commitWait(edit)
     }
 
-}
+    var isNotificationEnabled: Boolean
+        get() {
+            val pref = context.getSharedPreferences(
+                StorageConstants.TAG,
+                Context.MODE_PRIVATE
+            )
+            return pref.getBoolean(StorageConstants.NOTIFICATION_STATUS, false)
+        }
+        set(value) {
+            val pref = context.getSharedPreferences(
+                StorageConstants.TAG,
+                Context.MODE_PRIVATE
+            )
+            val edit = pref.edit()
+            // Store data. you may also use putFloat(), putInt(), putLong() as requirement
+            edit.putBoolean(StorageConstants.NOTIFICATION_STATUS, value)
+            // Commit the changes
+            commitWait(edit)
+        }
+
+
+    var notificationPermission: Int
+        get() {
+            val pref = context.getSharedPreferences(
+                StorageConstants.TAG,
+                Context.MODE_PRIVATE
+            )
+            return pref.getInt(StorageConstants.NOTIFICATION_PERMISSION, StorageConstants.PERMISSION_NOT_REQUESTED)
+        }
+        set(id) {
+            val pref = context.getSharedPreferences(
+                StorageConstants.TAG,
+                Context.MODE_PRIVATE
+            )
+            val edit = pref.edit()
+            // Store data. you may also use putFloat(), putInt(), putLong() as requirement
+            edit.putInt(StorageConstants.NOTIFICATION_PERMISSION, id)
+            // Commit the changes
+            commitWait(edit)
+        }
+
+    }

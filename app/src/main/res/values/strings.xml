@@ -1,4 +1,23 @@
 <resources>
     <string name="app_name">Telephony Monitor</string>
     <string name="location_attribution_label">Features utilizing location data</string>
+
+    <string name="tooltip_help">Press and hold a description for more information.</string>
+    <string name="post_notifications_permission_title">Post Notifications Permission</string>
+    <string name="post_notifications_permission_text">This permission is needed for the app to
+        display a notification when a mobile network is detected.
+        Disabling this permission has no other effect.</string>
+
+    <string name="notification_tooltip">Show a notification when a mobile network is found.
+        \n\nNotifications must be enabled in the app\'s permissions.  If the status shows "Denied",
+        long press on the toggle to access the app\'s settings.</string>
+    <string name="show_notifications_on_network_detected">Network detection notifications</string>
+
+    <string name="not_requested">Not requested</string>
+    <string name="denied">Denied (long press on toggle to change)</string>
+    <string name ="enabled_description">Enabled</string>
+    <string name ="disabled_description">Disabled</string>
+    <string name="dismiss_button_text">Dismiss</string>
+    <string name="try_again_button_text">Try again</string>
+
 </resources>
