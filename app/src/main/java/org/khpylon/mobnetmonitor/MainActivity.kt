@@ -201,7 +201,7 @@ fun InfoDialog(
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
 
-    val context = LocalContext.current.applicationContext
+    val context = LocalContext.current // .applicationContext
     val storage = Storage(context)
 
     var selectedRingtoneUri by remember { mutableStateOf<Uri?>(storage.ringTone) }

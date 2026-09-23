@@ -103,17 +103,15 @@ fun WidgetPermissions(context: Context) {
     val notificationSettingsLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult())
         {
-//            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
-//                || context.checkSelfPermission(
-//                    Manifest.permission.POST_NOTIFICATIONS
-//                ) == PackageManager.PERMISSION_GRANTED
-//            ) {
-//                storage.notificationPermission = StorageConstants.PERMISSION_GRANTED
-//                notificationEnabled = storage.isNotificationEnabled
-//            } else {
-//                storage.notificationPermission = StorageConstants.PERMISSION_DENIED
-//            }
-            storage.notificationPermission = StorageConstants.PERMISSION_DENIED
+            if( context.checkSelfPermission(
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                storage.notificationPermission = StorageConstants.PERMISSION_GRANTED
+                notificationEnabled = storage.isNotificationEnabled
+            } else {
+                storage.notificationPermission = StorageConstants.PERMISSION_DENIED
+            }
             notificationPermission = storage.notificationPermission
         }
 
@@ -169,7 +167,6 @@ fun WidgetPermissions(context: Context) {
                 notificationSettingsLauncher.launch(intent)
             }
         }
-
     )
 }
 
