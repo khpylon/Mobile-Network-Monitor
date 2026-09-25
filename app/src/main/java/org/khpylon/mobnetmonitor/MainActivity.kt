@@ -20,14 +20,18 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import org.khpylon.mobnetmonitor.ui.theme.MobNetMonitorTheme
 import android.app.Activity
+import android.content.Context
 import android.media.RingtoneManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -38,6 +42,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -46,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 
 object Constants {
@@ -235,8 +241,8 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 
         Text(
             text = buildAnnotatedString {
-                append ("This app monitors the status of your cellular network connection, ")
-                append ("and should you lose network service for a period of time will sound ")
+                append ("This app monitors the status of your cellular network connection. ")
+                append ("Should you lose network service for a period of time, it will sound ")
                 append("an alert when service is re-established.")
             },
             modifier = modifier
@@ -247,7 +253,22 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                 .padding(horizontal = 8.dp)
         )
 
-        WidgetPermissions(context)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        )
+        {
+            Text(
+                text = stringResource(R.string.tooltip_help),
+                fontSize = 12.sp,
+                modifier = Modifier.padding(5.dp)
+            )
+        }
+
+        phonePermissions(context)
+        accessLocationPermissions(context)
+        notificationPermission(context)
+
         Box(
             modifier = Modifier
                 .clickable(

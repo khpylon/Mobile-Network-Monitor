@@ -18,6 +18,10 @@ object StorageConstants {
     const val FIRST_APP_VERSION: String = "2026.09-18"
     const val NOTIFICATION_STATUS: String = "notificationStatus"
     const val NOTIFICATION_PERMISSION: String = "notificationPermissions"
+    const val READ_PHONE_STATUS: String = "readPhoneStatus"
+    const val READ_PHONE_PERMISSION: String = "readPhonePermissions"
+    const val ACCESS_LOCATION_STATUS: String = "accessLocationStatus"
+    const val ACCESS_LOCATION_PERMISSION: String = "accessLocationPermissions"
     const val PERMISSION_NOT_REQUESTED: Int = 0
     const val PERMISSION_GRANTED: Int = 1
     const val PERMISSION_DENIED: Int = 2
@@ -173,4 +177,86 @@ class Storage(private val context: Context) {
             commitWait(edit)
         }
 
-    }
+    var isReadPhoneEnabled: Boolean
+        get() {
+            val pref = context.getSharedPreferences(
+                StorageConstants.TAG,
+                Context.MODE_PRIVATE
+            )
+            return pref.getBoolean(StorageConstants.READ_PHONE_STATUS, false)
+        }
+        set(value) {
+            val pref = context.getSharedPreferences(
+                StorageConstants.TAG,
+                Context.MODE_PRIVATE
+            )
+            val edit = pref.edit()
+            // Store data. you may also use putFloat(), putInt(), putLong() as requirement
+            edit.putBoolean(StorageConstants.READ_PHONE_STATUS, value)
+            // Commit the changes
+            commitWait(edit)
+        }
+
+
+    var readPhonePermission: Int
+        get() {
+            val pref = context.getSharedPreferences(
+                StorageConstants.TAG,
+                Context.MODE_PRIVATE
+            )
+            return pref.getInt(StorageConstants.READ_PHONE_PERMISSION, StorageConstants.PERMISSION_NOT_REQUESTED)
+        }
+        set(id) {
+            val pref = context.getSharedPreferences(
+                StorageConstants.TAG,
+                Context.MODE_PRIVATE
+            )
+            val edit = pref.edit()
+            // Store data. you may also use putFloat(), putInt(), putLong() as requirement
+            edit.putInt(StorageConstants.READ_PHONE_PERMISSION, id)
+            // Commit the changes
+            commitWait(edit)
+        }
+
+    var isAccessLocationEnabled: Boolean
+        get() {
+            val pref = context.getSharedPreferences(
+                StorageConstants.TAG,
+                Context.MODE_PRIVATE
+            )
+            return pref.getBoolean(StorageConstants.ACCESS_LOCATION_STATUS, false)
+        }
+        set(value) {
+            val pref = context.getSharedPreferences(
+                StorageConstants.TAG,
+                Context.MODE_PRIVATE
+            )
+            val edit = pref.edit()
+            // Store data. you may also use putFloat(), putInt(), putLong() as requirement
+            edit.putBoolean(StorageConstants.ACCESS_LOCATION_STATUS, value)
+            // Commit the changes
+            commitWait(edit)
+        }
+
+
+    var accessLocationPermission: Int
+        get() {
+            val pref = context.getSharedPreferences(
+                StorageConstants.TAG,
+                Context.MODE_PRIVATE
+            )
+            return pref.getInt(StorageConstants.ACCESS_LOCATION_PERMISSION, StorageConstants.PERMISSION_NOT_REQUESTED)
+        }
+        set(id) {
+            val pref = context.getSharedPreferences(
+                StorageConstants.TAG,
+                Context.MODE_PRIVATE
+            )
+            val edit = pref.edit()
+            // Store data. you may also use putFloat(), putInt(), putLong() as requirement
+            edit.putInt(StorageConstants.ACCESS_LOCATION_PERMISSION, id)
+            // Commit the changes
+            commitWait(edit)
+        }
+
+}

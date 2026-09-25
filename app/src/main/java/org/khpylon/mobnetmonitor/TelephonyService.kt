@@ -1,11 +1,13 @@
 package org.khpylon.mobnetmonitor
 
+import android.Manifest
 import android.R
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.telephony.ServiceState
@@ -87,9 +89,26 @@ class TelephonyService : Service() {
         TelephonyCallback.ServiceStateListener {
         override fun onServiceStateChanged(serviceState: ServiceState) {
 
+            // Without necessary permissions, don't try to do anything
+            if (checkSelfPermission(
+                    Manifest.permission.READ_PHONE_STATE
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                Log.e("TelephonyService", "Missing READ_PHONE_STATE permission")
+                return
+            }
+            else if (checkSelfPermission(
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                Log.e("TelephonyService", "Missing ACCESS_COARSE_LOCATION permission")
+                return
+            }
+
             // Ignore Airplane mode changes; they don't seem to tell anything useful
             if (serviceState.state == ServiceState.STATE_POWER_OFF) {
-                Log.d(Constants.LOGTAG,
+                Log.d(
+                    Constants.LOGTAG,
                     "TelephonyService.onServiceStateChanged(): ignoring change to STATE_POWER_OFF"
                 )
             } else {
@@ -100,17 +119,20 @@ class TelephonyService : Service() {
 
                 // Find time ten seconds prior from right now
                 val nowTime = LocalDateTime.now(ZoneId.systemDefault())
-                val thenTime = nowTime.minusSeconds(10).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val thenTime = nowTime.minusSeconds(10).atZone(ZoneId.systemDefault()).toInstant()
+                    .toEpochMilli()
 
                 // If state changes from "out of service" to "in service", play notification sound
                 if (storage.serviceState != ServiceState.STATE_IN_SERVICE && serviceState.state == ServiceState.STATE_IN_SERVICE) {
                     // If it hasn't been ten seconds since the last change, ignore it
                     if (thenTime < lastTime) {
-                        Log.d(Constants.LOGTAG,
+                        Log.d(
+                            Constants.LOGTAG,
                             "TelephonyService.onServiceStateChanged(): less than 10 seconds elapsed since last change, so not playing alarm"
                         )
                     } else {
-                        Log.d(Constants.LOGTAG,
+                        Log.d(
+                            Constants.LOGTAG,
                             "TelephonyService.onServiceStateChanged(): playing alarm"
                         )
                         val intent = Intent(applicationContext, PlayAlarmService::class.java)
@@ -132,10 +154,12 @@ class TelephonyService : Service() {
                 notificationManager.notify(NOTIFICATION_ID, buildNotification(statusText))
 
                 // if state changes, save the new state and current time
-                if( storage.serviceState != serviceState.state ) {
+                if (storage.serviceState != serviceState.state) {
                     storage.serviceState = serviceState.state
-                    storage.lastTime = nowTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                    Log.d(Constants.LOGTAG,
+                    storage.lastTime =
+                        nowTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                    Log.d(
+                        Constants.LOGTAG,
                         "TelephonyService.onServiceStateChanged(): mode change to $statusText"
                     )
                 }
