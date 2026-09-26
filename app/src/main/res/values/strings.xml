@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Telephony Monitor</string>
+    <string name="app_name">Mobile Network Monitor</string>
     <string name="location_attribution_label">Features utilizing location data</string>
 
     <string name="tooltip_help">Press and hold a description for more information.</string>
