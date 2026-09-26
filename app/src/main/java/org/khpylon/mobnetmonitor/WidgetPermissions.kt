@@ -157,130 +157,130 @@ fun notificationPermission(context: Context) {
     )
 }
 
-@Composable
-fun phonePermissions(context: Context) {
-    val storage = Storage(context)
-
-    val packageName = context.packageName
-
-    // Can the app read the phone
-    var readPhoneEnabled by remember {
-        mutableStateOf(storage.isReadPhoneEnabled)
-    }
-
-    // Are read phone permissions allowed?
-    var readPhonePermission by remember {
-        mutableIntStateOf(storage.readPhonePermission)
-    }
-
-    // Is the user able to see the read phone permission dialog?
-    var readPhonePermissionPopup by remember {
-        mutableStateOf(false)
-    }
-
-    // Request read phone permissions if necessary
-    val readPhoneLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission())
-        { isGranted ->
-            if (isGranted) {
-                storage.isReadPhoneEnabled = true
-                storage.readPhonePermission = StorageConstants.PERMISSION_GRANTED
-            } else {
-                var activity = context
-                while (activity is ContextWrapper) {
-                    if (activity is Activity) break
-                    activity = activity.baseContext
-                }
-                if (ActivityCompat.shouldShowRequestPermissionRationale(
-                        activity as Activity,
-                        Manifest.permission.READ_PHONE_STATE
-                    )
-                ) {
-                    readPhonePermissionPopup = true
-                } else {
-                    storage.readPhonePermission = StorageConstants.PERMISSION_DENIED
-                }
-            }
-            readPhoneEnabled = storage.isNotificationEnabled
-            readPhonePermission = storage.notificationPermission
-        }
-
-    // If request for read phone permissions fails, show a dialog
-    if (readPhonePermissionPopup) {
-        InfoDialog(
-            onDismissRequest = { readPhonePermissionPopup = false },
-            dialogTitle = "Read Phone Permission",
-            dialogText =
-                buildAnnotatedString {
-                    append(stringResource(R.string.post_notifications_permission_text))
-                },
-            dismissText = stringResource(R.string.dismiss_button_text),
-            confirmText = stringResource(R.string.try_again_button_text),
-            onConfirmRequest = {
-                readPhoneLauncher.launch(Manifest.permission.READ_PHONE_STATE)
-                readPhonePermissionPopup = false
-            },
-        )
-    }
-
-    // Force request of notification permissions dialog,
-    val readPhoneSettingsLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult())
-        {
-            if( context.checkSelfPermission(
-                    Manifest.permission.READ_PHONE_STATE
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                storage.readPhonePermission = StorageConstants.PERMISSION_GRANTED
-                readPhoneEnabled = storage.isReadPhoneEnabled
-            } else {
-                storage.readPhonePermission = StorageConstants.PERMISSION_DENIED
-            }
-            readPhonePermission = storage.readPhonePermission
-        }
-
-    // Toggle for notifications
-    OptionSwitchRow(
-        tooltip = "Read the phone's status to determine if a mobile network is available.",
-        desc = buildAnnotatedString {
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Normal)) {
-                append("Read mobile network info")
-            }
-            append("\n  Status: ")
-            withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
-                append(
-                    when (readPhonePermission) {
-                        StorageConstants.PERMISSION_NOT_REQUESTED -> stringResource(R.string.not_requested)
-                        StorageConstants.PERMISSION_DENIED -> stringResource(R.string.denied)
-                        else -> context.getString(if (readPhoneEnabled) R.string.enabled_description else R.string.disabled_description)
-                    }
-                )
-            }
-        },
-        isChecked = readPhonePermission == StorageConstants.PERMISSION_GRANTED && readPhoneEnabled,
-        onClick = { value ->
-            if (value) {
-                if (context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                    storage.isReadPhoneEnabled = true
-                    readPhoneEnabled = true
-                } else {
-                    readPhoneLauncher.launch(Manifest.permission.READ_PHONE_STATE)
-                }
-            } else {
-                storage.isReadPhoneEnabled = false
-                readPhoneEnabled = false
-            }
-        },
-        onLongClick = {
-            if (readPhonePermission == StorageConstants.PERMISSION_DENIED) {
-                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    data = Uri.fromParts("package", packageName, null)
-                }
-                readPhoneSettingsLauncher.launch(intent)
-            }
-        }
-    )
-}
+//@Composable
+//fun phonePermissions(context: Context) {
+//    val storage = Storage(context)
+//
+//    val packageName = context.packageName
+//
+//    // Can the app read the phone
+//    var readPhoneEnabled by remember {
+//        mutableStateOf(storage.isReadPhoneEnabled)
+//    }
+//
+//    // Are read phone permissions allowed?
+//    var readPhonePermission by remember {
+//        mutableIntStateOf(storage.readPhonePermission)
+//    }
+//
+//    // Is the user able to see the read phone permission dialog?
+//    var readPhonePermissionPopup by remember {
+//        mutableStateOf(false)
+//    }
+//
+//    // Request read phone permissions if necessary
+//    val readPhoneLauncher =
+//        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission())
+//        { isGranted ->
+//            if (isGranted) {
+//                storage.isReadPhoneEnabled = true
+//                storage.readPhonePermission = StorageConstants.PERMISSION_GRANTED
+//            } else {
+//                var activity = context
+//                while (activity is ContextWrapper) {
+//                    if (activity is Activity) break
+//                    activity = activity.baseContext
+//                }
+//                if (ActivityCompat.shouldShowRequestPermissionRationale(
+//                        activity as Activity,
+//                        Manifest.permission.READ_PHONE_STATE
+//                    )
+//                ) {
+//                    readPhonePermissionPopup = true
+//                } else {
+//                    storage.readPhonePermission = StorageConstants.PERMISSION_DENIED
+//                }
+//            }
+//            readPhoneEnabled = storage.isNotificationEnabled
+//            readPhonePermission = storage.notificationPermission
+//        }
+//
+//    // If request for read phone permissions fails, show a dialog
+//    if (readPhonePermissionPopup) {
+//        InfoDialog(
+//            onDismissRequest = { readPhonePermissionPopup = false },
+//            dialogTitle = "Read Phone Permission",
+//            dialogText =
+//                buildAnnotatedString {
+//                    append(stringResource(R.string.post_notifications_permission_text))
+//                },
+//            dismissText = stringResource(R.string.dismiss_button_text),
+//            confirmText = stringResource(R.string.try_again_button_text),
+//            onConfirmRequest = {
+//                readPhoneLauncher.launch(Manifest.permission.READ_PHONE_STATE)
+//                readPhonePermissionPopup = false
+//            },
+//        )
+//    }
+//
+//    // Force request of notification permissions dialog,
+//    val readPhoneSettingsLauncher =
+//        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult())
+//        {
+//            if( context.checkSelfPermission(
+//                    Manifest.permission.READ_PHONE_STATE
+//                ) == PackageManager.PERMISSION_GRANTED
+//            ) {
+//                storage.readPhonePermission = StorageConstants.PERMISSION_GRANTED
+//                readPhoneEnabled = storage.isReadPhoneEnabled
+//            } else {
+//                storage.readPhonePermission = StorageConstants.PERMISSION_DENIED
+//            }
+//            readPhonePermission = storage.readPhonePermission
+//        }
+//
+//    // Toggle for notifications
+//    OptionSwitchRow(
+//        tooltip = "Read the phone's status to determine if a mobile network is available.",
+//        desc = buildAnnotatedString {
+//            withStyle(style = SpanStyle(fontWeight = FontWeight.Normal)) {
+//                append("Read mobile network info")
+//            }
+//            append("\n  Status: ")
+//            withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
+//                append(
+//                    when (readPhonePermission) {
+//                        StorageConstants.PERMISSION_NOT_REQUESTED -> stringResource(R.string.not_requested)
+//                        StorageConstants.PERMISSION_DENIED -> stringResource(R.string.denied)
+//                        else -> context.getString(if (readPhoneEnabled) R.string.enabled_description else R.string.disabled_description)
+//                    }
+//                )
+//            }
+//        },
+//        isChecked = readPhonePermission == StorageConstants.PERMISSION_GRANTED && readPhoneEnabled,
+//        onClick = { value ->
+//            if (value) {
+//                if (context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+//                    storage.isReadPhoneEnabled = true
+//                    readPhoneEnabled = true
+//                } else {
+//                    readPhoneLauncher.launch(Manifest.permission.READ_PHONE_STATE)
+//                }
+//            } else {
+//                storage.isReadPhoneEnabled = false
+//                readPhoneEnabled = false
+//            }
+//        },
+//        onLongClick = {
+//            if (readPhonePermission == StorageConstants.PERMISSION_DENIED) {
+//                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+//                    data = Uri.fromParts("package", packageName, null)
+//                }
+//                readPhoneSettingsLauncher.launch(intent)
+//            }
+//        }
+//    )
+//}
 
 @Composable
 fun accessLocationPermissions(context: Context) {

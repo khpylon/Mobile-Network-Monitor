@@ -89,15 +89,16 @@ class TelephonyService : Service() {
         TelephonyCallback.ServiceStateListener {
         override fun onServiceStateChanged(serviceState: ServiceState) {
 
-            // Without necessary permissions, don't try to do anything
-            if (checkSelfPermission(
-                    Manifest.permission.READ_PHONE_STATE
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                Log.e("TelephonyService", "Missing READ_PHONE_STATE permission")
-                return
-            }
-            else if (checkSelfPermission(
+//            // Without necessary permissions, don't try to do anything
+//            if (checkSelfPermission(
+//                    Manifest.permission.READ_PHONE_STATE
+//                ) != PackageManager.PERMISSION_GRANTED
+//            ) {
+//                Log.e("TelephonyService", "Missing READ_PHONE_STATE permission")
+//                return
+//            }
+//            else
+                if (checkSelfPermission(
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {

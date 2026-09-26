@@ -36,6 +36,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
@@ -65,23 +66,23 @@ class MainActivity : ComponentActivity() {
 
         val attributionContext = createAttributionContext(getString(R.string.location_attribution_label))
 
-        val telephonyManager = attributionContext.getSystemService(TELEPHONY_SERVICE) as TelephonyManager
+//        val telephonyManager = attributionContext.getSystemService(TELEPHONY_SERVICE) as TelephonyManager
+//        val state = if (ActivityCompat.checkSelfPermission(
+//                this,
+//                Manifest.permission.ACCESS_COARSE_LOCATION
+//            ) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+//                this,
+//                Manifest.permission.READ_PHONE_STATE
+//            ) == PackageManager.PERMISSION_GRANTED ) {
+//
+//            telephonyManager.serviceState?.state ?: ServiceState.STATE_IN_SERVICE
+//        } else {
+//            ServiceState.STATE_IN_SERVICE
+//        }
 
-        val state = if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_PHONE_STATE
-            ) == PackageManager.PERMISSION_GRANTED ) {
-
-            telephonyManager.serviceState?.state ?: ServiceState.STATE_IN_SERVICE
-        } else {
-            ServiceState.STATE_IN_SERVICE
-        }
-
+//        val state = ServiceState.STATE_IN_SERVICE
         val storage = Storage(applicationContext)
-        storage.serviceState = state
+//        storage.serviceState = state
 
         if (!TelephonyService.isRunning) {
             Log.d(Constants.LOGTAG, "MainActivity.onCreate(): starting Telephony service")
@@ -99,38 +100,14 @@ class MainActivity : ComponentActivity() {
             storage.notificationPermission = StorageConstants.PERMISSION_GRANTED
         }
 
-
-//        if (ContextCompat.checkSelfPermission(
-//                this, Manifest.permission.POST_NOTIFICATIONS
-//            ) != PackageManager.PERMISSION_GRANTED
-//        ) {
-////            if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
-//                registerForActivityResult(ActivityResultContracts.RequestPermission()) { }.launch(
-//                    Manifest.permission.POST_NOTIFICATIONS
-//                )
-////            }
-//        }
-
-        if (ContextCompat.checkSelfPermission(
-                this, Manifest.permission.READ_PHONE_STATE
-            ) != PackageManager.PERMISSION_GRANTED
+        if (applicationContext.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            && storage.notificationPermission == StorageConstants.PERMISSION_GRANTED
         ) {
-            if (shouldShowRequestPermissionRationale(Manifest.permission.READ_PHONE_STATE)) {
-                registerForActivityResult(ActivityResultContracts.RequestPermission()) { }.launch(
-                    Manifest.permission.READ_PHONE_STATE
-                )
-            }
-        }
-
-        if (ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+            storage.accessLocationPermission = StorageConstants.PERMISSION_DENIED
+        } else if (applicationContext.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            && storage.notificationPermission != StorageConstants.PERMISSION_GRANTED
         ) {
-            if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)) {
-                registerForActivityResult(ActivityResultContracts.RequestPermission()) { }.launch(
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
-            }
+            storage.accessLocationPermission = StorageConstants.PERMISSION_GRANTED
         }
 
         setContent {
@@ -248,9 +225,9 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
             modifier = modifier
         )
 
-        Spacer(
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 8.dp),
+            thickness = 3.dp,
         )
 
         Row(
@@ -265,9 +242,14 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
             )
         }
 
-        phonePermissions(context)
+//        phonePermissions(context)
         accessLocationPermissions(context)
         notificationPermission(context)
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 8.dp),
+            thickness = 3.dp,
+        )
 
         Box(
             modifier = Modifier
