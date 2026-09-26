@@ -9,12 +9,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
-import android.media.RingtoneManager
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-
 
 class PlayAlarmService : Service() {
 
@@ -49,55 +47,15 @@ class PlayAlarmService : Service() {
         return START_STICKY // Kept alive if killed by low memory
     }
 
-//    @OptIn(UnstableApi::class)
-//    private fun checkRingtoneLoopMetadata(context: Context, ringtoneUri: Uri) {
-//        val player = ExoPlayer.Builder(context).build()
-//
-//        player.addListener(object : Player.Listener {
-//            override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-//                super.onMediaMetadataChanged(mediaMetadata)
-//                val title = mediaMetadata.title
-//            }
-//            override fun onMetadata(metadata: Metadata) {
-//                for (i in 0 until metadata.length()) {
-//                    val entry = metadata[i]
-//
-//                    // 1. Check ID3 tags (Common in MP3 files)
-//                    if (entry is TextInformationFrame) {
-//                        if (entry.id == "TXXX" && entry.description.equals(
-//                                "ANDROID_LOOP",
-//                                ignoreCase = true
-//                            )
-//                        ) {
-//                            val isLooping = entry.values.firstOrNull()?.toBoolean() ?: false
-//                            Log.d("Metadata", "Found MP3 ANDROID_LOOP: $isLooping")
-//                        }
-//                    }
-//
-//                    // 2. Check Vorbis Comments (Common in OGG files)
-//                    if (entry is VorbisComment) {
-//                        if (entry.key.equals("ANDROID_LOOP", ignoreCase = true)) {
-//                            val isLooping = entry.value.toBoolean()
-//                            Log.d("Metadata", "Found OGG ANDROID_LOOP: $isLooping")
-//                        }
-//                    }
-//                }
-//            }
-//        })
-//
-//        val mediaItem = MediaItem.fromUri(ringtoneUri)
-//        player.setMediaItem(mediaItem)
-//        player.prepare() // Triggers metadata reading without forcing full playback
-//    }
-
     private fun playRingtone() {
         if (mediaPlayer == null) {
-            // Get default system ringtone URI
-            val ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
             // Just in case we're already playing a sound, stop it
             releasePlayer()
+
+            // Get the ringtone to use
+            val storage = Storage(applicationContext)
+            val ringtoneUri = storage.ringTone
 
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(applicationContext, ringtoneUri)
