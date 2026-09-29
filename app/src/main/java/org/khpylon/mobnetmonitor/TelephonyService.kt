@@ -1,13 +1,10 @@
 package org.khpylon.mobnetmonitor
 
-import android.Manifest
-import android.R
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.telephony.ServiceState
@@ -89,23 +86,6 @@ class TelephonyService : Service() {
         TelephonyCallback.ServiceStateListener {
         override fun onServiceStateChanged(serviceState: ServiceState) {
 
-//            // Without necessary permissions, don't try to do anything
-//            if (checkSelfPermission(
-//                    Manifest.permission.READ_PHONE_STATE
-//                ) != PackageManager.PERMISSION_GRANTED
-//            ) {
-//                Log.e("TelephonyService", "Missing READ_PHONE_STATE permission")
-//                return
-//            }
-//            else
-                if (checkSelfPermission(
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                Log.e("TelephonyService", "Missing ACCESS_COARSE_LOCATION permission")
-                return
-            }
-
             // Ignore Airplane mode changes; they don't seem to tell anything useful
             if (serviceState.state == ServiceState.STATE_POWER_OFF) {
                 Log.d(
@@ -142,10 +122,10 @@ class TelephonyService : Service() {
                 }
 
                 val statusText = when (serviceState.state) {
-                    ServiceState.STATE_IN_SERVICE -> "In Service"
-                    ServiceState.STATE_OUT_OF_SERVICE -> "No Network Service"
-                    ServiceState.STATE_EMERGENCY_ONLY -> "Emergency Calls Only"
-                    ServiceState.STATE_POWER_OFF -> "Radio Off (Airplane Mode)"
+                    ServiceState.STATE_IN_SERVICE -> "Connected to network"
+                    ServiceState.STATE_OUT_OF_SERVICE -> "Not connected to network"
+                    ServiceState.STATE_EMERGENCY_ONLY -> "Emergency calls only"
+                    ServiceState.STATE_POWER_OFF -> "Radio off (Airplane mode)"
                     else -> "Unknown State"
                 }
 
@@ -171,9 +151,8 @@ class TelephonyService : Service() {
     // Helper to generate the ongoing notification
     private fun buildNotification(contentText: String): Notification {
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Network Monitor")
             .setContentText(contentText)
-            .setSmallIcon(R.drawable.ic_dialog_info) // Replace with your app icon
+            .setSmallIcon(R.drawable.cell_4_bar_alert)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
@@ -182,7 +161,7 @@ class TelephonyService : Service() {
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Telephony Monitor Channel",
+            "Mobile Network Monitor Channel",
             NotificationManager.IMPORTANCE_LOW
         )
         val manager = getSystemService(NotificationManager::class.java)
