@@ -6,6 +6,8 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.media.AudioAttributes
+import android.media.MediaPlayer
 import android.os.IBinder
 import android.telephony.ServiceState
 import android.telephony.TelephonyCallback
@@ -24,6 +26,7 @@ class TelephonyService : Service() {
             private set
     }
 
+    private var mediaPlayer: MediaPlayer? = null
     private lateinit var telephonyManager: TelephonyManager
     private var telephonyCallback: ServiceStateCallback? = null
     private val NOTIFICATION_ID = 101
@@ -42,7 +45,8 @@ class TelephonyService : Service() {
         startForeground(
             NOTIFICATION_ID,
             buildNotification("Monitoring network status..."),
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE or
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
         )
 
         registerTelephonyCallback()
@@ -50,6 +54,8 @@ class TelephonyService : Service() {
         // Sticky ensures the service restarts if killed by the system
         return START_STICKY
     }
+
+
 
     private fun registerTelephonyCallback() {
         if (telephonyCallback == null) {
@@ -80,6 +86,51 @@ class TelephonyService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun playRingtone() {
+        if (mediaPlayer == null) {
+
+            // Just in case we're already playing a sound, stop it
+            releasePlayer()
+
+            // Get the ringtone to use
+            val storage = Storage(applicationContext)
+            val ringtoneUri = storage.ringTone
+
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(applicationContext, ringtoneUri)
+
+                // Configure audio attributes for a Ringtone stream
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                )
+
+                setOnPreparedListener { mp ->
+                    start()
+                }
+                setOnCompletionListener { mp ->
+                    releasePlayer()
+                }
+
+                // AudioAttributes.USAGE_NOTIFICATION apparently does not loop, but just to be sure
+                isLooping = false
+                prepare()
+            }
+        }
+    }
+
+    private fun releasePlayer() {
+        mediaPlayer?.apply {
+            if (isPlaying) {
+                stop()
+            }
+            release()
+        }
+        mediaPlayer = null
+    }
 
     // Inner class defining the listener
     private inner class ServiceStateCallback : TelephonyCallback(),
@@ -112,12 +163,11 @@ class TelephonyService : Service() {
                             "TelephonyService.onServiceStateChanged(): less than 10 seconds elapsed since last change, so not playing alarm"
                         )
                     } else {
+                        playRingtone()
                         Log.d(
                             Constants.LOGTAG,
                             "TelephonyService.onServiceStateChanged(): playing alarm"
                         )
-                        val intent = Intent(applicationContext, PlayAlarmService::class.java)
-                        startForegroundService(intent)
                     }
                 }
 

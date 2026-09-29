@@ -41,12 +41,7 @@
             android:name=".TelephonyService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="connectedDevice" />
-        <service
-            android:name=".PlayAlarmService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="mediaPlayback" />
+            android:foregroundServiceType="connectedDevice|mediaPlayback" />
         <receiver
             android:name=".BootComplete"
             android:enabled="true"
