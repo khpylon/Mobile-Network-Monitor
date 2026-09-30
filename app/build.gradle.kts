@@ -13,7 +13,7 @@ android {
         applicationId = "org.khpylon.mobnetmonitor"
         minSdk = 33
         targetSdk = 37
-        versionCode = 1
+        versionCode =
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
