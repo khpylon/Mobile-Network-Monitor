@@ -2,6 +2,9 @@
 
 ## Intro
 
+The purpose of this app is to alert you when your phone goes in and out of service.  More specifically, if the phone is out of
+service and then goes back into service, it will play a user-selectable ringtone to let you know this has happened.
+
 ## Requirements
 
 This app was developed on Android 17 but targets Android 13 (API 33).  There is no guarantee it will work on any earlier version.
